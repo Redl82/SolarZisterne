@@ -12,9 +12,17 @@
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 //#define DHTTYPE DHT21   // DHT 21 (AM2301)
 
-  // init DHT;
-  DHT dhtout(DHTPINOUT, DHTTYPE);
-  DHT dhtin(DHTPININ, DHTTYPE); 
+// init DHT;
+DHT dhtout(DHTPINOUT, DHTTYPE);
+DHT dhtin(DHTPININ, DHTTYPE); 
+
+
+//////////////////////////////
+// ACS712 Strom Messung
+//////////////////////////////
+const int SolarStromPin = A0;
+const int ESPStromPin = A1;
+
 void setup() 
 {
   // start serial
@@ -72,6 +80,37 @@ void loop() {
   Serial.print("Temperature in: ");
   Serial.print(t_in);
   Serial.println(" *C ");
+  Serial.print("Solarstrom: ");
+  Serial.print(StromMessen(100, SolarStromPin));
+  Serial.println("Amper");
 
+}
 
+float StromMessen(int mitteln, int Pin) 
+{
+// Den ACS712 Stromsensor auslesen
+// Sens ist im Datenblatt auf Seite 2 mit 185 angegeben.
+// Für meinen Sensor habe ich 186 ermittelt bei 5.0V Vcc.
+// Sens nimmt mit ca. 38 pro Volt VCC ab.
+//
+// 3,3V muss zu Analog Eingang 5 gebrückt werden.
+// Der Sensoreingang ist Analog 1
+//
+// Parameter mitteln : die Anzahl der Mittlungen
+// 
+// Matthias Busse 9.5.2014 Version 1.0
+
+float sense=185.0;           // mV/A Datenblatt Seite 2
+float vcc, vsensor, amp, ampmittel=0;
+int i;
+  
+  for(i=0;i< mitteln;i++) {
+    vcc = (float) 3.50 / analogRead(A5) * 1023.0;       // Ermittelt und Errechnet die Wirkliche Versorgungsspannung ermitteln. 3.5V Anpassen wenn bessere Versorgungsspannung verfügbar
+    //vsensor = (float) analogRead(A0) * vcc / 1023.0;  // Messwert auslesen
+    //vsensor = (float) vsensor - (vcc/2);              // Nulldurchgang (vcc/2) abziehen
+    //sense = (float) 186.0 - ((5.00-vcc)*sensdiff);    // sense für Vcc korrigieren 
+    //amp = (float) analogRead(Pin);                    // Ampere berechnen
+    ampmittel += vcc;                                   // Summieren
+  }
+  return ampmittel/mitteln;
 }
