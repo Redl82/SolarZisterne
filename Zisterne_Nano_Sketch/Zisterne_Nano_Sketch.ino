@@ -82,7 +82,7 @@ void loop() {
   Serial.println(" *C ");
   Serial.print("Solarstrom: ");
   Serial.print(StromMessen(100, SolarStromPin));
-  Serial.println("Amper");
+  Serial.println(" Amper");
 
 }
 
@@ -101,16 +101,17 @@ float StromMessen(int mitteln, int Pin)
 // Matthias Busse 9.5.2014 Version 1.0
 
 float sense=185.0;           // mV/A Datenblatt Seite 2
+float sensdiff=39.0;         // sense nimmt mit ca. 39/V Vcc ab
 float vcc, vsensor, amp, ampmittel=0;
 int i;
   
   for(i=0;i< mitteln;i++) {
-    vcc = (float) 3.50 / analogRead(A5) * 1023.0;       // Ermittelt und Errechnet die Wirkliche Versorgungsspannung ermitteln. 3.5V Anpassen wenn bessere Versorgungsspannung verfügbar
-    //vsensor = (float) analogRead(A0) * vcc / 1023.0;  // Messwert auslesen
-    //vsensor = (float) vsensor - (vcc/2);              // Nulldurchgang (vcc/2) abziehen
-    //sense = (float) 186.0 - ((5.00-vcc)*sensdiff);    // sense für Vcc korrigieren 
-    //amp = (float) analogRead(Pin);                    // Ampere berechnen
-    ampmittel += vcc;                                   // Summieren
+    vcc = (float) 3.52 / analogRead(A5) * 1023.0;       // Ermittelt und Errechnet die Wirkliche Versorgungsspannung ermitteln. 3.5V Anpassen wenn bessere Versorgungsspannung verfügbar
+    vsensor = (float) analogRead(Pin) * vcc / 1023.0;   // Errechnet die Sapannung die tatsächlich am Analogeingang anliegt, bei 0A --> ca.2,5V
+    vsensor = (float) vsensor - (vcc/2);                // Nulldurchgang (vcc/2) abziehen, bei 0A-->0V
+    sense = (float) 185.0 ;//-((5.00-vcc)*sensdiff);      // sense für Vcc korrigieren, korrigiert die nichtlinearität des sensors (noch nciht ganz verstanden, erklärung hier: http://shelvin.de/den-acs-712-5a-strom-sensor-am-arduino-auslesen/
+    amp = (float) vsensor /sense *1000 ;                // Ampere berechnen
+    ampmittel += amp;                                   // Summieren
   }
   return ampmittel/mitteln;
 }
