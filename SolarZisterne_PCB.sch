@@ -1,0 +1,157 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L ATMEGA328P-PU U?
+U 1 1 5929E6B8
+P 3600 2600
+F 0 "U?" H 2850 3850 50  0000 L BNN
+F 1 "ATMEGA328P-PU" H 4000 1200 50  0000 L BNN
+F 2 "DIL28" H 3600 2600 50  0001 C CIN
+F 3 "" H 3600 2600 50  0001 C CNN
+	1    3600 2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 5929E77D
+P 2450 4000
+F 0 "#PWR?" H 2450 3750 50  0001 C CNN
+F 1 "GND" H 2450 3850 50  0000 C CNN
+F 2 "" H 2450 4000 50  0001 C CNN
+F 3 "" H 2450 4000 50  0001 C CNN
+	1    2450 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 3800 2450 3800
+Wire Wire Line
+	2450 3700 2450 4000
+Wire Wire Line
+	2700 3700 2450 3700
+Connection ~ 2450 3800
+$Comp
+L Crystal Y?
+U 1 1 5929E800
+P 5000 2150
+F 0 "Y?" H 5000 2300 50  0000 C CNN
+F 1 "Crystal 8MHz" H 5000 2000 50  0000 C CNN
+F 2 "" H 5000 2150 50  0001 C CNN
+F 3 "" H 5000 2150 50  0001 C CNN
+	1    5000 2150
+	0    1    1    0   
+$EndComp
+$Comp
+L C C?
+U 1 1 5929E857
+P 5300 2000
+F 0 "C?" H 5325 2100 50  0000 L CNN
+F 1 "22pF" H 5325 1900 50  0000 L CNN
+F 2 "" H 5338 1850 50  0001 C CNN
+F 3 "" H 5300 2000 50  0001 C CNN
+	1    5300 2000
+	0    -1   -1   0   
+$EndComp
+$Comp
+L C C?
+U 1 1 5929E893
+P 5300 2300
+F 0 "C?" H 5325 2400 50  0000 L CNN
+F 1 "22pF" H 5325 2200 50  0000 L CNN
+F 2 "" H 5338 2150 50  0001 C CNN
+F 3 "" H 5300 2300 50  0001 C CNN
+	1    5300 2300
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4750 2000 5150 2000
+Wire Wire Line
+	4750 2300 5150 2300
+Wire Wire Line
+	4750 2000 4750 2100
+Wire Wire Line
+	4750 2100 4600 2100
+Connection ~ 5000 2000
+Wire Wire Line
+	4750 2300 4750 2200
+Wire Wire Line
+	4750 2200 4600 2200
+Connection ~ 5000 2300
+$Comp
+L GND #PWR?
+U 1 1 5929EA3D
+P 5600 2400
+F 0 "#PWR?" H 5600 2150 50  0001 C CNN
+F 1 "GND" H 5600 2250 50  0000 C CNN
+F 2 "" H 5600 2400 50  0001 C CNN
+F 3 "" H 5600 2400 50  0001 C CNN
+	1    5600 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5450 2300 5600 2300
+Wire Wire Line
+	5600 2000 5600 2400
+Wire Wire Line
+	5450 2000 5600 2000
+Connection ~ 5600 2300
+$Comp
+L GND #PWR?
+U 1 1 5929EA91
+P 2450 2200
+F 0 "#PWR?" H 2450 1950 50  0001 C CNN
+F 1 "GND" H 2450 2050 50  0000 C CNN
+F 2 "" H 2450 2200 50  0001 C CNN
+F 3 "" H 2450 2200 50  0001 C CNN
+	1    2450 2200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 2100 2450 2100
+Wire Wire Line
+	2450 1800 2450 2200
+Wire Wire Line
+	2700 1800 2450 1800
+Connection ~ 2450 2100
+$EndSCHEMATC
