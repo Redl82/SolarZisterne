@@ -1,4 +1,4 @@
-update=26.06.2017 21:50:25
+update=28.06.2017 20:09:35
 version=1
 last_client=kicad
 [pcbnew]
@@ -59,4 +59,5 @@ LibName27=atmel
 LibName28=contrib
 LibName29=valves
 LibName30=C:/Program Files/KiCad/share/kicad/library/kicad-ESP8266/ESP8266
-LibName31=C:/Program Files/KiCad/share/kicad/library/wemos_d1_mini/wemos_mini
+LibName31=C:/Program Files/KiCad/share/kicad/library/MCP73871/mcp73871
+LibName32=C:/Program Files/KiCad/share/kicad/library/wemos_d1_mini/wemos_mini
