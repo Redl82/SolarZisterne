@@ -23,13 +23,17 @@ unsigned long ulSecs2000_timer=0;
 
 // storage for Measurements; keep some mem free; allocate remainder
 #define KEEP_MEM_FREE 10240
-#define MEAS_SPAN_H 4           // Dauer bis Speicher, voll in Stunden 744h-->31Tage Messung ca. all 20 Min.
-unsigned long ulMeasCount=0;    // values already measured
-unsigned long ulNoMeasValues=0; // size of array
-unsigned long ulMeasDelta_ms;   // distance to next meas time
-unsigned long ulNextMeas_ms;    // next meas time
-unsigned long *pulTime;         // array for time points of measurements
-float *pfTemp,*pfHum,*pfDist;   // array for temperature, humidity and Distance measurements
+#define MEAS_SPAN_H 4                   // Dauer bis Speicher, voll in Stunden 744h-->31Tage Messung ca. all 20 Min.
+unsigned long ulMeasCount=0;            // values already measured
+unsigned long ulNoMeasValues=0;         // size of array
+unsigned long ulMeasDelta_ms;           // distance to next meas time
+unsigned long ulNextMeas_ms;            // next meas time
+unsigned long *pulTime;                 // array for time points of measurements
+float *pfTemp,*pfHum,*pfDist;           // array for temperature, humidity and Distance measurements
+float pfPres, pfTempIn, pfHumIn;        // Werte Luftdruck außen, Temperatur und Luftdruck innen
+float pfSolarSp, pfSolarSt, pfSolarLe;  // Werte für Solar Spannung Strom und Leistung
+float pfVerbSp, pfVerbSt, pfVerbLei;    // Werte für Verbraucher Spannung Strom und Leistung
+char* chStatus;                         // Array für Status 
 
 unsigned long ulReqcount;       // how often has a valid page been requested
 unsigned long ulReconncount;    // how often did we connect to WiFi
@@ -99,25 +103,33 @@ void setup()
   //Definition der Pins für Ultraschall Sensor
   pinMode(TRIGGER, OUTPUT);
   pinMode(ECHO, INPUT);
+  Serial.println("########################################################################################################");
+  Serial.println("");
   Serial.println("Ultraschall Sensor wurde wie folgt eingerichte:");
+  Serial.println("Ultraschall Sensor wird eingerichte:");
   Serial.print("Triger auf Pin ");
   Serial.println(TRIGGER);
   Serial.print("Echo auf Pin ");
   Serial.println(ECHO);
   Serial.println("");
+  Serial.println("Ultraschall Sensor wurde wie folgt eingerichte:");
+  Serial.println("");
+  Serial.println("########################################################################################################");
   
   // inital connect
   WiFi.mode(WIFI_STA);
-  WiFi.hostname("zisterne");
+  WiFi.hostname("Zisterne");
   WiFiStart();
 
   //Einrichten der SD-Karte
 
   Serial.println("");
+  Serial.println("########################################################################################################");
+  Serial.println("");
   Serial.println("Initializing SD card...");
   if (!card.init(SPI_HALF_SPEED, chipSelect)) 
   {
-    Serial.println("Es wurde keine SD-Karte gefunden! Es können keine Messdaten gespeichert werden extern gespecihert werden!");
+    Serial.println("Es wurde keine SD-Karte gefunden! Es können keine Messdaten gespeichert werden extern gespeichert werden!");
     //Serial.println("* is a card inserted?");
     //Serial.println("* is your wiring correct?");
     //Serial.println("* did you change the chipSelect pin to match your shield or module?");
@@ -168,6 +180,8 @@ void setup()
     }
 
   Serial.println("");
+  Serial.println("########################################################################################################");
+  Serial.println("");
 
   // allocate ram for data storage
   uint32_t free=system_get_free_heap_size() - KEEP_MEM_FREE;
@@ -195,6 +209,10 @@ void setup()
     Serial.println(" ms.");
     
     ulNextMeas_ms = millis()+ulMeasDelta_ms;
+
+    Serial.println("");
+    Serial.println("########################################################################################################");
+    Serial.println("");
   }
  
 }
@@ -209,7 +227,7 @@ void WiFiStart()
   
   // Connect to WiFi network
   Serial.println();
-  Serial.println();
+
   Serial.print("Connecting to ");
   Serial.println(ssid);
   
@@ -229,11 +247,11 @@ void WiFiStart()
 
   // Print the IP address
   Serial.println("");
-  Serial.println("####################################");
-  Serial.print("Die Messwert sind im Browser unter 'Zisterne' oder unter der IP:");
+  Serial.println("#############################################################################################");
+  Serial.print("# Die Messwert sind im Browser unter 'Zisterne' oder unter der IP:");
   Serial.print(WiFi.localIP());
-  Serial.println(" erreichbar!");
-  Serial.println("####################################");
+  Serial.println(" erreichbar! #");
+  Serial.println("#############################################################################################");
   Serial.println("");
     
   ///////////////////////////////
@@ -417,7 +435,7 @@ String MakeHTTPFooter()
   sResponse += (uint32_t)system_get_free_heap_size();
   sResponse += F(" - Max. Datenpunkte=");
   sResponse += ulNoMeasValues;
-  sResponse += F("<BR>Daniel Redlich 04/2017<BR></body></html>");
+  sResponse += F("<BR>Daniel Redlich 08/2017<BR></body></html>");
   
   return(sResponse);
 }
@@ -449,24 +467,38 @@ void loop()
     pfHum[ulMeasCount%ulNoMeasValues] = dht.readHumidity();
     pfTemp[ulMeasCount%ulNoMeasValues] = dht.readTemperature();
     pulTime[ulMeasCount%ulNoMeasValues] = millis()/1000+ulSecs2000_timer;
+    int i=0;
     while (isnan(pfHum[ulMeasCount%ulNoMeasValues])||isnan(pfTemp[ulMeasCount%ulNoMeasValues])||isnan(pulTime[ulMeasCount%ulNoMeasValues]))
     {
-      Serial.println("Fehlerhafte Messung!!!");
+      i++;
+      Serial.print("Fehlerhafte Messung: ");
+      Serial.print (i);
+      Serial.println(" !!!");
       Serial.println("Messwerte werden verworfen und Messung wird wiederholt");
       delay(1000);
       pfHum[ulMeasCount%ulNoMeasValues] = dht.readHumidity();
       pfTemp[ulMeasCount%ulNoMeasValues] = dht.readTemperature();
       pulTime[ulMeasCount%ulNoMeasValues] = millis()/1000+ulSecs2000_timer;
+      if (i>=10)
+      {
+        pfHum[ulMeasCount%ulNoMeasValues] = 0;
+        pfTemp[ulMeasCount%ulNoMeasValues] = 0;
+        break;
+      }
     }
-    Serial.print("Logging Temperature: "); 
+    Serial.print("Logging External Temperature: "); 
     Serial.print(pfTemp[ulMeasCount%ulNoMeasValues]);
     Serial.print(" deg Celsius - Humidity: "); 
     Serial.print(pfHum[ulMeasCount%ulNoMeasValues]);
     Serial.print("% - Filled: ");
     Serial.print(pfDist[ulMeasCount%ulNoMeasValues]);
-    Serial.print("% - Time: ");
+    Serial.print("% - Pressure: ");
+    Serial.print(pfPres);
+    Serial.print("hPa - Time: ");
     Serial.println(pulTime[ulMeasCount%ulNoMeasValues]);
-
+    Serial.print("Status: ");
+    Serial.println(chStatus); 
+    
   //////////////////////////////
   //Messwerte auf SD-Karte speichern
   //////////////////////////////
@@ -511,11 +543,31 @@ void loop()
       LogFile.println("\"sep=;\"");
       LogFile.print("Datum");
       LogFile.print(";");
-      LogFile.print("Zisternen Fuellstand");
+      LogFile.print("Zisternen Fuellstand[%]");
       LogFile.print(";");
-      LogFile.print("Temperatur Aussen");                //Schreibt Außen Temperatur
+      LogFile.print("Temperatur Aussen[*C]");                //Schreibt Außen Temperatur
       LogFile.print(";");
-      LogFile.print("Luftfeuchtigkeit Aussen");
+      LogFile.print("Luftfeuchtigkeit Aussen[%]");
+      LogFile.print(";");
+      LogFile.print("Luftdruck Aussen[hPa]");
+      LogFile.print(";");
+      LogFile.print("Temperatur Innen[*C]");
+      LogFile.print(";");
+      LogFile.print("Luftdruck Innen[hPa]");
+      LogFile.print(";");
+      LogFile.print("Status");
+      LogFile.print(";");
+      LogFile.print("Solar Spannung[V]");
+      LogFile.print(";");
+      LogFile.print("Solar Strom[A]");
+      LogFile.print(";");
+      LogFile.print("Solar Leistung[W]");
+      LogFile.print(";");
+      LogFile.print("Verbrauch Spannung[V]");
+      LogFile.print(";");
+      LogFile.print("Verbrauch Strom[A]");
+      LogFile.print(";");
+      LogFile.print("Verbrauch Leistung[W]");
       LogFile.println(";");
       LogFile.close();
       Serial.println("Tabellenkopf wurde angelegt.");
@@ -632,7 +684,9 @@ void loop()
     sResponse += epoch_to_string(pulTime[iIndex]).c_str();
     sResponse += F(" UTC<BR>\n<div id=\"gaugedist_div\" style=\"float:left; width:160px; height: 160px;\"></div>\n<div id=\"gaugetemp_div\" style=\"float:left; width:160px; height: 160px;\"></div> \n<div id=\"gaugehum_div\" style=\"float:left; width:160px; height: 160px;\"></div>\n<div style=\"clear:both;\"></div>");
     
-    sResponse2 = F("<p>F&uuml;llstand-, Temperatur- & Feuchtigkeitsverlauf - Seiten laden l&auml;nger:<BR><a href=\"/grafik\">Grafik</a>     <a href=\"/tabelle\">Tabelle</a>   <a href=\"/download\">Download Messerte</a></p>");
+    sResponse2 = F("<p>Status Energieversorgung: <br>");
+    //sResponse2 +=
+    sResponse2 += F("<br> F&uuml;llstand-, Temperatur- & Feuchtigkeitsverlauf - Seiten laden l&auml;nger:<BR>  <a href=\"/grafik\">Grafik</a>   <a href=\"/tabelle\">Tabelle</a>  <a href=\"/solar\">Solar</a>  <a href=\"/download\">Download Messerte</a></p>");
     sResponse2 += MakeHTTPFooter().c_str();
     
     // Send the response to the client 
@@ -692,6 +746,10 @@ void loop()
     MakeList(&client,true);
     client.print(sResponse2);
   }
+
+  ///////////////////////////////////
+  // format the html page for /download
+  ///////////////////////////////////
 
   else if(sPath=="/download")
   {
