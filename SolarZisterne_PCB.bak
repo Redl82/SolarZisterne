@@ -1,4 +1,5 @@
 EESchema Schematic File Version 2
+LIBS:SolarZisterne_PCB-rescue
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -47,7 +48,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L WeMos_mini U3
+L WeMos_mini-RESCUE-SolarZisterne_PCB U3
 U 1 1 59516611
 P 2300 4350
 F 0 "U3" H 2300 4850 60  0000 C CNN
@@ -517,7 +518,7 @@ NoConn ~ 1800 4600
 NoConn ~ 1800 4700
 NoConn ~ 1800 4000
 $Comp
-L CONN_01X06 J1
+L CONN_01X06-RESCUE-SolarZisterne_PCB J1
 U 1 1 59546730
 P 2400 1000
 F 0 "J1" H 2400 1350 50  0000 C CNN
@@ -550,7 +551,7 @@ F 3 "" H 2150 700 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CONN_01X06 J2
+L CONN_01X06-RESCUE-SolarZisterne_PCB J2
 U 1 1 59547D30
 P 6700 1250
 F 0 "J2" H 6700 1600 50  0000 C CNN
@@ -751,12 +752,12 @@ $EndComp
 $Comp
 L +3.3V #PWR032
 U 1 1 5956BC5D
-P 8150 3850
-F 0 "#PWR032" H 8150 3700 50  0001 C CNN
-F 1 "+3.3V" H 8150 3990 50  0000 C CNN
-F 2 "" H 8150 3850 50  0001 C CNN
-F 3 "" H 8150 3850 50  0001 C CNN
-	1    8150 3850
+P 8150 3900
+F 0 "#PWR032" H 8150 3750 50  0001 C CNN
+F 1 "+3.3V" H 8150 4040 50  0000 C CNN
+F 2 "" H 8150 3900 50  0001 C CNN
+F 3 "" H 8150 3900 50  0001 C CNN
+	1    8150 3900
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -779,7 +780,7 @@ L CONN_01X04 J7
 U 1 1 5956C14C
 P 9600 4300
 F 0 "J7" H 9600 4550 50  0000 C CNN
-F 1 "Externer Temperatur Sensor" V 9700 4300 50  0000 C CNN
+F 1 "Interner Temperatur Sensor" V 9700 4300 50  0000 C CNN
 F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 9600 4300 50  0001 C CNN
 F 3 "" H 9600 4300 50  0001 C CNN
 	1    9600 4300
@@ -848,11 +849,15 @@ Wire Wire Line
 Wire Wire Line
 	1200 1350 1050 1350
 Wire Wire Line
-	1500 1350 2050 1350
+	1500 1350 1700 1350
+Wire Wire Line
+	1700 1350 2050 1350
 Wire Wire Line
 	1700 1350 1700 1400
 Wire Wire Line
-	2050 1250 2050 1400
+	2050 1250 2050 1350
+Wire Wire Line
+	2050 1350 2050 1400
 Connection ~ 1700 1350
 Wire Wire Line
 	1700 1750 1700 1700
@@ -860,7 +865,9 @@ Wire Wire Line
 	2050 1750 2050 1700
 Connection ~ 2050 1350
 Wire Wire Line
-	3550 1250 3550 1700
+	3550 1250 3550 1600
+Wire Wire Line
+	3550 1600 3550 1700
 Wire Wire Line
 	3550 1600 3700 1600
 Wire Wire Line
@@ -869,7 +876,9 @@ Connection ~ 3550 1600
 Wire Wire Line
 	3300 750  3300 850 
 Wire Wire Line
-	3300 1150 3300 1250
+	3300 1150 3300 1200
+Wire Wire Line
+	3300 1200 3300 1250
 Wire Wire Line
 	3300 1550 3300 1600
 Wire Wire Line
@@ -886,11 +895,17 @@ Wire Wire Line
 Wire Wire Line
 	3700 2100 2850 2100
 Wire Wire Line
-	3400 2200 3700 2200
+	3400 2200 3550 2200
+Wire Wire Line
+	3550 2200 3700 2200
 Wire Wire Line
 	3700 2300 3550 2300
 Wire Wire Line
-	3550 2200 3550 2500
+	3550 2200 3550 2300
+Wire Wire Line
+	3550 2300 3550 2400
+Wire Wire Line
+	3550 2400 3550 2500
 Connection ~ 3550 2200
 Wire Wire Line
 	3550 2400 3700 2400
@@ -899,13 +914,17 @@ Wire Wire Line
 	3550 2500 3700 2500
 Connection ~ 3550 2400
 Wire Wire Line
-	5100 2850 4400 2850
+	5100 2850 4850 2850
+Wire Wire Line
+	4850 2850 4400 2850
 Wire Wire Line
 	4850 2850 4850 2900
 Wire Wire Line
 	5050 2500 5100 2500
 Wire Wire Line
-	5100 2400 5100 2850
+	5100 2400 5100 2500
+Wire Wire Line
+	5100 2500 5100 2850
 Connection ~ 4850 2850
 Wire Wire Line
 	5050 2400 5100 2400
@@ -927,7 +946,9 @@ Wire Wire Line
 Wire Wire Line
 	5050 2100 5750 2100
 Wire Wire Line
-	6050 2100 6350 2100
+	6050 2100 6150 2100
+Wire Wire Line
+	6150 2100 6350 2100
 Wire Wire Line
 	6150 2100 6150 2400
 Wire Wire Line
@@ -944,11 +965,17 @@ Wire Wire Line
 Wire Wire Line
 	6550 2250 6550 2200
 Wire Wire Line
-	5050 1800 6800 1800
+	5050 1800 5150 1800
+Wire Wire Line
+	5150 1800 6550 1800
+Wire Wire Line
+	6550 1800 6800 1800
 Wire Wire Line
 	5050 1900 5150 1900
 Wire Wire Line
-	5150 1800 5150 2000
+	5150 1800 5150 1900
+Wire Wire Line
+	5150 1900 5150 2000
 Connection ~ 5150 1800
 Wire Wire Line
 	5150 2000 5050 2000
@@ -959,9 +986,13 @@ Connection ~ 6550 1800
 Wire Wire Line
 	7800 2000 7800 1900
 Wire Wire Line
-	5050 1600 6500 1600
+	5050 1600 5150 1600
 Wire Wire Line
-	6800 1600 7500 1600
+	5150 1600 6500 1600
+Wire Wire Line
+	6800 1600 7300 1600
+Wire Wire Line
+	7300 1600 7500 1600
 Wire Wire Line
 	5050 1700 5150 1700
 Wire Wire Line
@@ -975,7 +1006,9 @@ Wire Wire Line
 Wire Wire Line
 	8250 1650 8250 1600
 Wire Wire Line
-	8100 1600 8650 1600
+	8100 1600 8250 1600
+Wire Wire Line
+	8250 1600 8650 1600
 Wire Wire Line
 	8250 2000 8250 1950
 Wire Wire Line
@@ -1034,13 +1067,21 @@ Wire Wire Line
 Wire Wire Line
 	5350 4450 5450 4450
 Wire Wire Line
-	4850 3650 4850 3750
+	4850 3650 4850 3700
 Wire Wire Line
-	4850 5050 4850 5150
+	4850 3700 4850 3750
+Wire Wire Line
+	4850 5050 4850 5100
+Wire Wire Line
+	4850 5100 4850 5150
 Wire Wire Line
 	5400 4850 5350 4850
 Wire Wire Line
-	5400 4650 5400 5100
+	5400 4650 5400 4750
+Wire Wire Line
+	5400 4750 5400 4850
+Wire Wire Line
+	5400 4850 5400 5100
 Wire Wire Line
 	5400 5100 4850 5100
 Connection ~ 4850 5100
@@ -1120,7 +1161,7 @@ Wire Wire Line
 Wire Wire Line
 	8250 4000 8150 4000
 Wire Wire Line
-	8150 4000 8150 3850
+	8150 4000 8150 3900
 Wire Wire Line
 	8250 4400 8000 4400
 Wire Wire Line
