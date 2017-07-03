@@ -1,16 +1,16 @@
 /*---------------------------------------------------
-HTTP 1.1 Temperature & Humidity Webserver for ESP8266 
+HTTP 1.1 Outdoor Webserver for WeMos Mini
 for ESP8266 adapted Arduino IDE
 
-by Stefan Thesen 05/2015 - free for anyone
-
-Connect DHT21 / AMS2301 at GPIO0
+by Daniel 07/2017 - free for anyone
 ---------------------------------------------------*/
 
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <SPI.h>
 #include <SD.h>
+#include <Wire.h>                        // I2C
+#include "Adafruit_MCP23008.h"           // MCP23008 
 #include "time_ntp.h"
 #include "DHT.h"
 
@@ -33,7 +33,7 @@ float *pfTemp,*pfHum,*pfDist;           // array for temperature, humidity and D
 float pfPres, pfTempIn, pfHumIn;        // Werte Luftdruck außen, Temperatur und Luftdruck innen
 float pfSolarSp, pfSolarSt, pfSolarLe;  // Werte für Solar Spannung Strom und Leistung
 float pfVerbSp, pfVerbSt, pfVerbLei;    // Werte für Verbraucher Spannung Strom und Leistung
-char* chStatus;                         // Array für Status 
+String stStatus;                         // Array für Status 
 
 unsigned long ulReqcount;       // how often has a valid page been requested
 unsigned long ulReconncount;    // how often did we connect to WiFi
@@ -79,6 +79,8 @@ extern "C"
 {
 #include "user_interface.h"
 }
+// aktiviert Digitalport expander MCP23008
+Adafruit_MCP23008 mcp;
 
 /////////////////////
 // the setup routine
@@ -99,7 +101,74 @@ void setup()
   Serial.println("#gefunden werden.                                                                                      #");
   Serial.println("########################################################################################################");
   Serial.println();
+  
+  //Start I2C
+  Wire.begin();
+  Serial.println("########################################################################################################");
+  Serial.println("");
+  Serial.println("I2C initialisiert!");
+  Serial.println("SCL auf Pin D1 und SCA auf Pin D2");
+  //Sucht nach benutzten GPIO Adressen
+  byte error, address;
+  int nDevices;
 
+  Serial.println("Suche nach Geräten...");
+  
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) 
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmisstion to see if
+    // a device did acknowledge to the address.
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+
+    if (error == 0)
+    {
+      Serial.print("I2C Gerät auf adresse 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.print(address,HEX);
+      Serial.println("  gefunden !");
+
+      nDevices++;
+    }
+    else if (error==4) 
+    {
+      Serial.print("Unknown error at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.println(address,HEX);
+    }    
+  }
+  if (nDevices == 0)
+    Serial.println("No I2C devices found\n");
+  else
+    Serial.println("Fertsch\n");
+
+  mcp.begin();                // use default address 0x20 oder 0 GPIO Expander 
+  
+  Serial.println("GPIO Erweiterung auf 0x20 eingerichtet!");
+  
+  mcp.pinMode(0, INPUT);      // definiert Pin 0 als Input --> PG
+  mcp.pinMode(1, INPUT);      // definiert Pin 1 als Input --> STAT2
+  mcp.pinMode(2, INPUT);      // definiert Pin 2 als Input --> STAT1
+  mcp.pullUp(0, HIGH);        // turn on a 100K pullup internally
+  mcp.pullUp(1, HIGH);        // turn on a 100K pullup internally
+  mcp.pullUp(2, HIGH);        // turn on a 100K pullup internally
+
+  Serial.println("GPIO0 --> PG");
+  Serial.println("GPIO1 --> STAT1");
+  Serial.println("GPIO2 --> STAT2");
+
+  Serial.println("Pull-Up Wiederstände wurden eingeschaltet");
+  
+  Serial.println("");
+  Serial.println("########################################################################################################");
+  Serial.println("");
+
+  
+  
   //Definition der Pins für Ultraschall Sensor
   pinMode(TRIGGER, OUTPUT);
   pinMode(ECHO, INPUT);
@@ -486,6 +555,50 @@ void loop()
         break;
       }
     }
+
+    //Status der Solar-Lade Schaltung
+
+    /*
+            GPIO2   GPIO1   GPIO0
+     Wert   STAT1   STAT2   PG      Status
+     7      1       1       1       Input Power Not OK / Shutdown
+     6      1       1       0       Input Power OK / No Battery Present
+     4      1       0       0       Input Power OK / Charge Complete - Standby
+     3      0       1       1       Input Power Not OK / Low Battery Output
+     2      0       1       0       Input Power OK / Chargin Batter in Constant Current/Voltage or Preconding Mode
+     0      0       0       0       Input Power OK / Temperature Fault / Temperatur Fault
+    */
+    
+    switch (mcp.readGPIO()) 
+    {
+      case 0:
+        stStatus="Input Power OK / Temperatur Fehler oder Timer Fehler (0)";
+        break;
+      case 1:
+        stStatus="Nicht definert";
+        break;
+      case 2:
+        stStatus="Input Power OK / Chargin Batter in Constant Current/Voltage or Preconding Mode (2)";
+        break;
+      case 3:
+        stStatus="Input Power Not OK / Low Battery Output (3)";
+        break;
+      case 4:
+        stStatus="Input Power OK / Charge Complete - Standby (4)";
+        break;
+      case 5:
+        stStatus="Nicht definert";
+        break;
+      case 6:
+        stStatus="Input Power OK / No Battery Present (6)";
+        break;
+      case 7:
+        stStatus="Input Power Not OK / Shutdown (7)";
+        break;
+    }  
+
+
+    //Seriele AUsgabe des Status
     Serial.print("Logging External Temperature: "); 
     Serial.print(pfTemp[ulMeasCount%ulNoMeasValues]);
     Serial.print(" deg Celsius - Humidity: "); 
@@ -497,7 +610,7 @@ void loop()
     Serial.print("hPa - Time: ");
     Serial.println(pulTime[ulMeasCount%ulNoMeasValues]);
     Serial.print("Status: ");
-    Serial.println(chStatus); 
+    Serial.println(stStatus); 
     
   //////////////////////////////
   //Messwerte auf SD-Karte speichern
@@ -684,9 +797,9 @@ void loop()
     sResponse += epoch_to_string(pulTime[iIndex]).c_str();
     sResponse += F(" UTC<BR>\n<div id=\"gaugedist_div\" style=\"float:left; width:160px; height: 160px;\"></div>\n<div id=\"gaugetemp_div\" style=\"float:left; width:160px; height: 160px;\"></div> \n<div id=\"gaugehum_div\" style=\"float:left; width:160px; height: 160px;\"></div>\n<div style=\"clear:both;\"></div>");
     
-    sResponse2 = F("<p>Status Energieversorgung: <br>");
-    //sResponse2 +=
-    sResponse2 += F("<br> F&uuml;llstand-, Temperatur- & Feuchtigkeitsverlauf - Seiten laden l&auml;nger:<BR>  <a href=\"/grafik\">Grafik</a>   <a href=\"/tabelle\">Tabelle</a>  <a href=\"/solar\">Solar</a>  <a href=\"/download\">Download Messerte</a></p>");
+    sResponse2 = F("<p>Status Energieversorgung: <BR>");
+    sResponse2 += stStatus;
+    sResponse2 += F("<BR> <BR> F&uuml;llstand-, Temperatur- & Feuchtigkeitsverlauf - Seiten laden l&auml;nger:<BR>  <a href=\"/grafik\">Grafik</a>   <a href=\"/tabelle\">Tabelle</a>  <a href=\"/solar\">Solar</a>  <a href=\"/download\">Download Messerte</a></p>");
     sResponse2 += MakeHTTPFooter().c_str();
     
     // Send the response to the client 
