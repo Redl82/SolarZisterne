@@ -10,7 +10,8 @@ by Daniel 07/2017 - free for anyone
 #include <SPI.h>
 #include <SD.h>
 #include <Wire.h>                        // I2C
-#include "Adafruit_MCP23008.h"           // MCP23008 
+#include <Adafruit_INA219.h>             // INA219 Strommessung
+#include "Adafruit_MCP23008.h"           // MCP23008
 #include "time_ntp.h"
 #include "DHT.h"
 
@@ -79,8 +80,12 @@ extern "C"
 {
 #include "user_interface.h"
 }
-// aktiviert Digitalport expander MCP23008
+// Deklariert Digitalport expander MCP23008
 Adafruit_MCP23008 mcp;
+
+// Deklariert StromMessensor INA219 
+Adafruit_INA219 ina219in;                           //Sensor vor MCP73871
+Adafruit_INA219 ina219out(0x41);                    //Sensor nach MCP73871
 
 /////////////////////
 // the setup routine
@@ -166,8 +171,15 @@ void setup()
   Serial.println("");
   Serial.println("########################################################################################################");
   Serial.println("");
-
-  
+  Serial.println("########################################################################################################");
+  Serial.println("");
+  ina219in.begin();
+  ina219out.begin();
+  Serial.println("Sensor zum messen des Solar Eingans Stromes und Spannung wurden auf der Adresse 0X40 eingerichtet");
+  Serial.println("Sensor zum messen des Verbrauchten Stromes und Spannung wurden auf der Adresse 0X41 eingerichtet");
+  Serial.println("");
+  Serial.println("########################################################################################################");
+  Serial.println("");
   
   //Definition der Pins für Ultraschall Sensor
   pinMode(TRIGGER, OUTPUT);
@@ -637,6 +649,26 @@ void loop()
           String pfHumKomma =  String(pfHum[ulMeasCount%ulNoMeasValues]);
           pfHumKomma.replace(".",",");
           LogFile.print(pfHumKomma);
+          LogFile.print(";");          
+          LogFile.print("pfPres");
+          LogFile.print(";");
+          LogFile.print("pfTempIn");
+          LogFile.print(";");
+          LogFile.print("pfHumIn");
+          LogFile.print(";");
+          LogFile.print(stStatus);
+          LogFile.print(";");
+          LogFile.print("pfSolarSp");
+          LogFile.print(";");
+          LogFile.print("pfSolarSt");
+          LogFile.print(";");
+          LogFile.print("pfSolarLe");
+          LogFile.print(";");
+          LogFile.print("pfVerbSp");
+          LogFile.print(";");
+          LogFile.print("pfVerbSt");
+          LogFile.print(";");
+          LogFile.print("pfVerbLei");    
           LogFile.println(";");
           LogFile.close();
          
@@ -859,6 +891,35 @@ void loop()
     MakeList(&client,true);
     client.print(sResponse2);
   }
+
+
+  ///////////////////////////////////
+  // format the html page for /Solar
+  ///////////////////////////////////
+
+  else if(sPath=="/solar")
+  {
+    ulReqcount++;
+    sResponse  = F("<html><head><title>Zisternen F&uuml;llstandsanzeige, Temperatur- und Feuchtigkeitslogger</title></head><body>");
+    sResponse += F("<font color=\"#000000\"><body bgcolor=\"#d0d0f0\">");
+    sResponse += F("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=yes\">");
+    sResponse += F("<h1>Zisternen F&uuml;llstandsanzeige, Temperatur- und Feuchtigkeitslogger</h1>");
+    sResponse += F("<FONT SIZE=+1>");
+    sResponse += F("<a href=\"/\">Startseite</a><BR><BR>Letzte Messungen im Abstand von ");
+    sResponse += ulMeasDelta_ms;
+    sResponse += F("ms<BR>");
+
+
+    sResponse2 = MakeHTTPFooter().c_str();
+    
+    // Send the response to the client - delete strings after use to keep mem low
+    client.print(MakeHTTPHeader(sResponse.length()+sResponse2.length())); 
+    client.print(sResponse); sResponse="";
+    client.print(sResponse2);                
+  }
+
+
+
 
   ///////////////////////////////////
   // format the html page for /download
