@@ -33,7 +33,7 @@ unsigned long *pulTime;                 // array for time points of measurements
 float *pfTemp,*pfHum,*pfDist;           // array for temperature, humidity and Distance measurements
 float pfPres, pfTempIn, pfHumIn;        // Werte Luftdruck außen, Temperatur und Luftdruck innen
 float pfSolarSp, pfSolarSt, pfSolarLe;  // Werte für Solar Spannung Strom und Leistung
-float pfVerbSp, pfVerbSt, pfVerbLei;    // Werte für Verbraucher Spannung Strom und Leistung
+float pfVerbSp, pfVerbSt, pfVerbLe;    // Werte für Verbraucher Spannung Strom und Leistung
 String stStatus;                         // Array für Status 
 
 unsigned long ulReqcount;       // how often has a valid page been requested
@@ -517,6 +517,7 @@ String MakeHTTPFooter()
   sResponse += F(" - Max. Datenpunkte=");
   sResponse += ulNoMeasValues;
   sResponse += F("<BR>Daniel Redlich 08/2017<BR></body></html>");
+  sResponse += F("<a href=\"https://github.com/Redl82/SolarZisterne\" target=\"_blank\">Technische Dokumentation</a><BR>");
   
   return(sResponse);
 }
@@ -533,7 +534,8 @@ void loop()
   if (millis()>=ulNextMeas_ms) 
   {
     ulNextMeas_ms = millis()+ulMeasDelta_ms;
-    //Messung der Entfernung
+    
+    //Messung des Zisternen Füllstandes
     digitalWrite(TRIGGER, LOW);  
     delayMicroseconds(2); 
   
@@ -545,28 +547,9 @@ void loop()
                                                                                                // /2 /29,1 rechnet Zeit in Distanz in mm um
                                                                                                // Map Befehl errechnet daraus eine Prozent Zhal des Füll Standes    
     //Messung der Luftfeuchtigkeit und Temperatur
-    pfHum[ulMeasCount%ulNoMeasValues] = dht.readHumidity();
-    pfTemp[ulMeasCount%ulNoMeasValues] = dht.readTemperature();
+    pfHum[ulMeasCount%ulNoMeasValues] = 0;
+    pfTemp[ulMeasCount%ulNoMeasValues] = 0;
     pulTime[ulMeasCount%ulNoMeasValues] = millis()/1000+ulSecs2000_timer;
-    int i=0;
-    while (isnan(pfHum[ulMeasCount%ulNoMeasValues])||isnan(pfTemp[ulMeasCount%ulNoMeasValues])||isnan(pulTime[ulMeasCount%ulNoMeasValues]))
-    {
-      i++;
-      Serial.print("Fehlerhafte Messung: ");
-      Serial.print (i);
-      Serial.println(" !!!");
-      Serial.println("Messwerte werden verworfen und Messung wird wiederholt");
-      delay(1000);
-      pfHum[ulMeasCount%ulNoMeasValues] = dht.readHumidity();
-      pfTemp[ulMeasCount%ulNoMeasValues] = dht.readTemperature();
-      pulTime[ulMeasCount%ulNoMeasValues] = millis()/1000+ulSecs2000_timer;
-      if (i>=10)
-      {
-        pfHum[ulMeasCount%ulNoMeasValues] = 0;
-        pfTemp[ulMeasCount%ulNoMeasValues] = 0;
-        break;
-      }
-    }
 
     //Status der Solar-Lade Schaltung
 
@@ -608,21 +591,47 @@ void loop()
         stStatus="Input Power Not OK / Shutdown (7)";
         break;
     }  
+    //Messung von Spannung und Strom der Solar-Schaltung
+    // Solarzellen --> MCP73871
+    pfSolarSp = ina219in.getBusVoltage_V();
+    pfSolarSt = ina219in.getCurrent_mA();
+    pfSolarLe = pfSolarSt/1000*pfSolarSp; 
+    // MCP73871 --> Spannungsregler WEMOS
+    pfVerbSp = ina219out.getBusVoltage_V();
+    pfVerbSt = ina219out.getCurrent_mA();
+    pfVerbLe = pfVerbSt/1000*pfVerbSp;            
+    
 
-
-    //Seriele AUsgabe des Status
+    //Seriele Ausgabe des Status
     Serial.print("Logging External Temperature: "); 
     Serial.print(pfTemp[ulMeasCount%ulNoMeasValues]);
-    Serial.print(" deg Celsius - Humidity: "); 
+    Serial.print(" deg C - Humidity: "); 
     Serial.print(pfHum[ulMeasCount%ulNoMeasValues]);
-    Serial.print("% - Filled: ");
-    Serial.print(pfDist[ulMeasCount%ulNoMeasValues]);
     Serial.print("% - Pressure: ");
     Serial.print(pfPres);
+    Serial.print("% - Filled: ");
+    Serial.print(pfDist[ulMeasCount%ulNoMeasValues]);
     Serial.print("hPa - Time: ");
     Serial.println(pulTime[ulMeasCount%ulNoMeasValues]);
+    Serial.println("Logging Internal Temperature: ");
+    //Hier interne Messungen eingeben
     Serial.print("Status: ");
-    Serial.println(stStatus); 
+    Serial.println(stStatus);
+    Serial.print("Logging Solar Spannung: ");
+    Serial.print(pfSolarSp);
+    Serial.print(" V - Strom: ");
+    Serial.print(pfSolarSt);
+    Serial.print(" mA - Leistung: ");
+    Serial.print(pfSolarLe);
+    Serial.println(" W");
+    Serial.print("Logging Verbrauch Spannung: ");
+    Serial.print(pfVerbSp);
+    Serial.print(" V - Strom: ");
+    Serial.print(pfVerbSt);
+    Serial.print(" mA - Leistung: ");
+    Serial.print(pfVerbLe);
+    Serial.println(" W");
+    Serial.println("#############################################################################################");
     
   //////////////////////////////
   //Messwerte auf SD-Karte speichern
@@ -658,18 +667,31 @@ void loop()
           LogFile.print(";");
           LogFile.print(stStatus);
           LogFile.print(";");
-          LogFile.print("pfSolarSp");
+          String SolarSp = String(pfSolarSp);
+          SolarSp.replace(".",",");
+          LogFile.print(SolarSp);
           LogFile.print(";");
-          LogFile.print("pfSolarSt");
+          String SolarSt = String(pfSolarSt);
+          SolarSt.replace(".",",");
+          LogFile.print(SolarSt);
           LogFile.print(";");
-          LogFile.print("pfSolarLe");
+          String SolarLe = String(pfSolarLe);
+          SolarLe.replace(".",",");
+          LogFile.print(SolarLe);
           LogFile.print(";");
-          LogFile.print("pfVerbSp");
+          String VerbSp = String(pfVerbSp);
+          VerbSp.replace(".",",");
+          LogFile.print(VerbSp);
           LogFile.print(";");
-          LogFile.print("pfVerbSt");
+          String VerbSt = String(pfVerbSt);
+          VerbSt.replace(".",",");
+          LogFile.print(VerbSt);
           LogFile.print(";");
-          LogFile.print("pfVerbLei");    
+          String VerbLe = String(pfVerbLe);
+          VerbLe.replace(".",",");
+          LogFile.print(VerbLe);    
           LogFile.println(";");
+          
           LogFile.close();
          
         }
@@ -891,8 +913,7 @@ void loop()
     MakeList(&client,true);
     client.print(sResponse2);
   }
-
-
+  
   ///////////////////////////////////
   // format the html page for /Solar
   ///////////////////////////////////
@@ -900,16 +921,35 @@ void loop()
   else if(sPath=="/solar")
   {
     ulReqcount++;
-    sResponse  = F("<html><head><title>Zisternen F&uuml;llstandsanzeige, Temperatur- und Feuchtigkeitslogger</title></head><body>");
+    sResponse  = F("<html><head><title>Zisternen F&uuml;llstandsanzeige, Temperatur- und Feuchtigkeitslogger</title>");
+    sResponse += F("<meta http-equiv=\"refresh\" content=\"");                                                                                             //aktifiert automatische Aktualisierung der Seite
+    sResponse += ulMeasDelta_ms/1000;                                                                                                                            //definert aktualisierungs Intervall
+    sResponse += F("\"></head><body>");
     sResponse += F("<font color=\"#000000\"><body bgcolor=\"#d0d0f0\">");
     sResponse += F("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=yes\">");
     sResponse += F("<h1>Zisternen F&uuml;llstandsanzeige, Temperatur- und Feuchtigkeitslogger</h1>");
     sResponse += F("<FONT SIZE=+1>");
-    sResponse += F("<a href=\"/\">Startseite</a><BR><BR>Letzte Messungen im Abstand von ");
+    sResponse += F("<a href=\"/\">Startseite</a><BR><BR>Diese Seite wird alle  ");
     sResponse += ulMeasDelta_ms;
-    sResponse += F("ms<BR>");
-
-
+    sResponse += F("ms automatisch aktualisiert!<BR>");
+    sResponse += F("<table style=\"width:100%\"><tr><th>   </th><th>Produktion Solarzellen</th><th>Verbrauch Elektronik</th></tr>");
+    sResponse += F("<style>table, th, td {border: 2px solid black; border-collapse: collapse;} th, td {padding: 5px;} th {text-align: left;}</style>");
+    sResponse += F("<tr><th>Spannung [V] </th><th>");
+    sResponse += pfSolarSp;
+    sResponse += F("</th><th>");
+    sResponse += pfVerbSp;
+    sResponse += F("</th></tr>");
+    sResponse += F("<tr><th>Strom [mA] </th><th>");
+    sResponse += pfSolarSt;
+    sResponse += F("</th><th>");
+    sResponse += pfVerbSt;
+    sResponse += F("</th></tr>");
+    sResponse += F("<tr><th>Leistung [W] </th><th>");
+    sResponse += pfSolarLe;
+    sResponse += F("</th><th>");
+    sResponse += pfVerbLe;
+    sResponse += F("</th></tr>");
+    sResponse += F("</table>");
     sResponse2 = MakeHTTPFooter().c_str();
     
     // Send the response to the client - delete strings after use to keep mem low
