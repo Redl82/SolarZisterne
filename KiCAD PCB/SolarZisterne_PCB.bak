@@ -105,7 +105,7 @@ U 1 1 5953F3A3
 P 850 1450
 F 0 "J3" H 850 1700 50  0000 C TNN
 F 1 "Solar" V 700 1450 50  0000 C TNN
-F 2 "Connectors_Terminal_Blocks:TerminalBlock_Pheonix_MKDS1.5-2pol" H 850 1225 50  0001 C CNN
+F 2 "Connectors_Terminal_Blocks:TerminalBlock_Pheonix_PT-3.5mm_2pol" H 850 1225 50  0001 C CNN
 F 3 "" H 825 1450 50  0001 C CNN
 	1    850  1450
 	1    0    0    -1  
@@ -377,7 +377,7 @@ U 1 1 59541EB9
 P 7000 1900
 F 0 "J4" H 7000 2150 50  0000 C TNN
 F 1 "Akku" V 6850 1900 50  0000 C TNN
-F 2 "Connectors_Terminal_Blocks:TerminalBlock_Pheonix_MKDS1.5-2pol" H 7000 1675 50  0001 C CNN
+F 2 "Connectors_Terminal_Blocks:TerminalBlock_Pheonix_PT-3.5mm_2pol" H 7000 1675 50  0001 C CNN
 F 3 "" H 6975 1900 50  0001 C CNN
 	1    7000 1900
 	-1   0    0    1   
@@ -644,7 +644,7 @@ U 1 1 5954D9DF
 P 7350 4300
 F 0 "J5" H 7350 4750 50  0000 C TNN
 F 1 "Ultraschall Sensor" V 7200 4300 50  0000 C TNN
-F 2 "Connectors_Terminal_Blocks:TerminalBlock_Pheonix_MKDS1.5-4pol" H 7350 3875 50  0001 C CNN
+F 2 "Connectors_Terminal_Blocks:TerminalBlock_Pheonix_PT-3.5mm_4pol" H 7350 3875 50  0001 C CNN
 F 3 "" H 7325 4500 50  0001 C CNN
 	1    7350 4300
 	-1   0    0    1   
@@ -1142,4 +1142,6 @@ Wire Wire Line
 	1800 4100 1300 4100
 Wire Wire Line
 	10750 900  10750 800 
+Text Notes 9700 5250 0    60   ~ 0
+Graund mit Jumper für GPIO
 $EndSCHEMATC

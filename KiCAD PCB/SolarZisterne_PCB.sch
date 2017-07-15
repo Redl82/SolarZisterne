@@ -1144,4 +1144,8 @@ Wire Wire Line
 	10750 900  10750 800 
 Text Notes 9700 5250 0    60   ~ 0
 Graund mit Jumper für GPIO
+Text Notes 7750 4950 0    60   ~ 0
+gegen 6pol austauschen
+Text Notes 9050 5050 0    60   ~ 0
+gegen 6pol austauschen\nplus VCC
 $EndSCHEMATC
