@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source "Y:/Daniel/Projekte/GitHub/SolarZisterne/KiCAD PCB/SolarZisterne_PCB.sch")
-    (date "23.07.2017 22:54:22")
+    (date "23.07.2017 23:43:10")
     (tool "Eeschema 4.0.6")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -16,7 +16,7 @@
         (comment (number 4) (value "")))))
   (components
     (comp (ref U3)
-      (value WeMos_mini)
+      (value WeMos_Mini)
       (footprint wemos_d1_mini:D1_mini_board)
       (libsource (lib SolarZisterne_PCB-rescue) (part WeMos_mini-RESCUE-SolarZisterne_PCB))
       (sheetpath (names /) (tstamps /))
